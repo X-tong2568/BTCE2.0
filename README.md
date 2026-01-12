@@ -16,6 +16,57 @@
 * 🖼️ 支持监控评论图片和直播封面
 * 🎬 直播状态监控（开播/下播/标题变更通知）
 
+## 示例效果
+
+### 1️⃣ 邮件卡片示例（动态置顶评论更新）
+
+<div style="border:1px solid #ddd; padding:10px; max-width:400px; background:#f9f9f9; font-family:Microsoft YaHei">
+  <div style="background:linear-gradient(135deg,#2196F3,#1976D2);color:#fff;text-align:center;padding:10px;border-radius:5px">
+    <h3>🎉 test_name 动态置顶评论更新</h3>
+  </div>
+  <div style="padding:10px">
+    <p><b>新置顶评论：</b></p>
+    <div style="background:#f0f8ff;padding:10px;border-radius:5px">大家好，这是新置顶评论内容</div>
+    <p><b>评论图片：</b></p>
+    <img src="https://i0.hdslb.com/bfs/article/xxx.jpg" style="max-width:100%; border-radius:5px" />
+    <p><b>检测时间：</b>2026-01-12 10:00:00</p>
+    <a href="https://t.bilibili.com/123456" style="background:#2196F3;color:#fff;padding:5px 10px;border-radius:3px;text-decoration:none">查看动态</a>
+  </div>
+  <div style="font-size:12px;color:#999;text-align:center;padding:5px">此邮件由动态监控系统自动发送</div>
+</div>
+
+---
+
+### 2️⃣ 邮件卡片示例（直播开播通知）
+
+<div style="border:1px solid #ddd; padding:10px; max-width:400px; background:#f9f9f9; font-family:Microsoft YaHei">
+  <div style="background:linear-gradient(135deg,#ff6699,#ff3366);color:#fff;text-align:center;padding:10px;border-radius:5px">
+    <h3>🎉 test_name 直播开播提醒</h3>
+  </div>
+  <div style="padding:10px">
+    <p><b>标题：</b>新年特别直播</p>
+    <p><b>封面：</b></p>
+    <img src="https://i0.hdslb.com/bfs/live/cover.jpg" style="max-width:100%; border-radius:5px" />
+    <p><b>监控时间：</b>2026-01-12 10:00:00</p>
+    <a href="https://live.bilibili.com/6" style="background:#ff3366;color:#fff;padding:5px 10px;border-radius:3px;text-decoration:none">进入直播间</a>
+  </div>
+  <div style="font-size:12px;color:#999;text-align:center;padding:5px">此邮件由直播监控系统自动发送</div>
+</div>
+
+---
+
+### 3️⃣ QQ 消息示例（直播封面推送）
+
+```
+【test_name 直播监控】🎉 开播提醒
+标题：新年特别直播
+链接：https://live.bilibili.com/6
+时间：2026-01-12 10:00:00
+封面：
+[CQ:image,file=https://i0.hdslb.com/bfs/live/cover.jpg]
+----------------
+```
+
 ## 安装要求
 
 * Python 3.8+
@@ -302,10 +353,13 @@ MIT 许可证 - 查看 [LICENSE](LICENSE)
 仅供学习与研究使用，使用者自行负责。
 请合理设置检查频率，妥善保管 Cookie 与邮箱授权码。
 
----
 
-我可以帮你做的下一步优化是**把 README 中的“动态监控”和“直播监控”部分加图示或者示例邮件卡片效果**，让用户一眼就能看懂卡片长什么样。
 
-你希望我帮你加吗？
+
+
+
+
+
+
 
 
