@@ -13,6 +13,13 @@ from config import (
 )
 
 
+#| 邮件类型      | 主题语义    | 主色            |
+#| --------- | ------- | ------------- |
+#| **P1 告警** | 严重 / 紧急 | 深橙色 `#E65100` |
+#| **P2 告警** | 警告 / 风险 | 琥珀色 `#F9A825` |
+#| **性能报告**  | 稳定 / 中性 | 青绿色 `#00796B` |
+
+
 class PerformanceMonitor:
     """性能监控器：修复P1/P2告警触发问题"""
 
@@ -186,11 +193,9 @@ class PerformanceMonitor:
             logger.error(f"❌ 发送性能报告邮件异常: {e}")
 
     def _generate_p1_alert_content(self, total_cycles, failure_count):
-        """生成P1告警邮件内容"""
         success = self.cumulative_success
         success_rate = success / total_cycles if total_cycles > 0 else 0
 
-        # 获取最近5次失败的时间
         recent_failures = []
         for record in reversed(self.cycle_durations):
             if not record['success']:
@@ -198,122 +203,208 @@ class PerformanceMonitor:
             if len(recent_failures) >= 5:
                 break
 
+        theme = "#E65100"
+
         return f"""
+        <!DOCTYPE html>
         <html>
-        <head><style>body {{ font-family: Arial, sans-serif; margin: 20px; }}</style></head>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {{
+                    font-family: 'Microsoft YaHei', Arial, sans-serif;
+                    background: #f5f5f5;
+                    padding: 20px;
+                }}
+                .card {{
+                    max-width: 600px;
+                    margin: auto;
+                    background: #fff;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+                    overflow: hidden;
+                }}
+                .header {{
+                    background: linear-gradient(135deg, {theme}, #BF360C);
+                    color: white;
+                    padding: 20px;
+                    text-align: center;
+                }}
+                .content {{
+                    padding: 24px;
+                }}
+                .stat {{
+                    background: #fff3e0;
+                    padding: 12px;
+                    border-radius: 6px;
+                    margin-bottom: 12px;
+                }}
+                ul {{
+                    padding-left: 18px;
+                }}
+            </style>
+        </head>
         <body>
-            <h2 style="color: #dc3545;">🚨 P1告警 - 失败次数超标</h2>
-            <p><strong>失败次数:</strong> {failure_count} (阈值: {P1_TOTAL_FAILURE_THRESHOLD})</p>
-            <p><strong>当前轮次:</strong> {total_cycles}</p>
-            <p><strong>告警时间:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-            <hr>
-            <h3>📊 系统状态</h3>
-            <p>总轮次数: {total_cycles}</p>
-            <p>成功轮次: {success}</p>
-            <p>失败轮次: {failure_count}</p>
-            <p>成功率: {success_rate:.1%}</p>
-            <h4>最近失败时间:</h4>
-            <ul>
-                {''.join(f'<li>{time}</li>' for time in recent_failures)}
-            </ul>
-            <p><strong>⚠️ 请立即检查监控系统状态！</strong></p>
+            <div class="card">
+                <div class="header">
+                    <h2>🚨 P1 严重告警</h2>
+                    <p>累计失败次数超出安全阈值</p>
+                </div>
+
+                <div class="content">
+                    <div class="stat"><strong>失败次数：</strong>{failure_count}</div>
+                    <div class="stat"><strong>当前轮次：</strong>{total_cycles}</div>
+                    <div class="stat"><strong>成功率：</strong>{success_rate:.1%}</div>
+
+                    <h4>最近失败时间</h4>
+                    <ul>
+                        {''.join(f'<li>{t}</li>' for t in recent_failures)}
+                    </ul>
+
+                    <p><strong>⚠️ 请立即检查系统运行状态。</strong></p>
+                </div>
+            </div>
         </body>
         </html>
         """
 
     def _generate_p2_alert_content(self, total_cycles, success_rate):
-        """生成P2告警邮件内容"""
         success = self.cumulative_success
         failure = self.cumulative_failure
 
-        # 计算最近10轮的成功率
-        recent_cycles = self.cycle_durations[-10:] if len(self.cycle_durations) >= 10 else self.cycle_durations
-        recent_success = sum(1 for r in recent_cycles if r['success'])
-        recent_total = len(recent_cycles)
-        recent_rate = recent_success / recent_total if recent_total > 0 else 0
+        recent = self.cycle_durations[-10:] if len(self.cycle_durations) >= 10 else self.cycle_durations
+        recent_success = sum(1 for r in recent if r['success'])
+        recent_rate = recent_success / len(recent) if recent else 0
+
+        theme = "#F9A825"
 
         return f"""
+        <!DOCTYPE html>
         <html>
-        <head><style>body {{ font-family: Arial, sans-serif; margin: 20px; }}</style></head>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {{
+                    font-family: 'Microsoft YaHei', Arial, sans-serif;
+                    background: #f5f5f5;
+                    padding: 20px;
+                }}
+                .card {{
+                    max-width: 600px;
+                    margin: auto;
+                    background: #fff;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }}
+                .header {{
+                    background: linear-gradient(135deg, {theme}, #F57F17);
+                    color: white;
+                    padding: 20px;
+                    text-align: center;
+                }}
+                .content {{
+                    padding: 24px;
+                }}
+                .stat {{
+                    background: #fffde7;
+                    padding: 12px;
+                    border-radius: 6px;
+                    margin-bottom: 10px;
+                }}
+            </style>
+        </head>
         <body>
-            <h2 style="color: #ffc107;">⚠️ P2告警 - 成功率过低</h2>
-            <p><strong>总体成功率:</strong> {success_rate:.2%} (阈值: {P2_SUCCESS_RATE_THRESHOLD:.0%})</p>
-            <p><strong>最近{recent_total}轮成功率:</strong> {recent_rate:.2%}</p>
-            <p><strong>当前轮次:</strong> {total_cycles}</p>
-            <p><strong>告警时间:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-            <hr>
-            <h3>📊 性能详情</h3>
-            <p>总轮次数: {total_cycles}</p>
-            <p>成功轮次: {success}</p>
-            <p>失败轮次: {failure}</p>
-            <p><strong>💡 建议：</strong></p>
-            <ul>
-                <li>更新Cookies</li>
-                <li>检查网络连接</li>
-                <li>检查B站反爬策略</li>
-                <li>重启浏览器实例</li>
-            </ul>
+            <div class="card">
+                <div class="header">
+                    <h2>⚠️ P2 性能告警</h2>
+                    <p>成功率低于预期阈值</p>
+                </div>
+
+                <div class="content">
+                    <div class="stat"><strong>总体成功率：</strong>{success_rate:.2%}</div>
+                    <div class="stat"><strong>最近成功率：</strong>{recent_rate:.2%}</div>
+                    <div class="stat"><strong>失败轮次：</strong>{failure}</div>
+
+                    <h4>建议排查项</h4>
+                    <ul>
+                        <li>Cookie 是否失效</li>
+                        <li>网络波动</li>
+                        <li>反爬策略变化</li>
+                        <li>浏览器实例稳定性</li>
+                    </ul>
+                </div>
+            </div>
         </body>
         </html>
         """
 
     def _generate_report_content(self, total_cycles):
-        """生成性能报告邮件内容"""
-        uptime_seconds = time.time() - self.start_time
-        uptime_hours = uptime_seconds / 3600
-
+        uptime_hours = (time.time() - self.start_time) / 3600
         success = self.cumulative_success
         failure = self.cumulative_failure
         success_rate = success / total_cycles if total_cycles > 0 else 0
 
-        # 计算平均耗时
-        if self.cycle_durations:
-            avg_duration = sum(r['duration'] for r in self.cycle_durations) / len(self.cycle_durations)
-            recent_durations = self.cycle_durations[-10:] if len(self.cycle_durations) >= 10 else self.cycle_durations
-            recent_avg = sum(r['duration'] for r in recent_durations) / len(recent_durations)
-        else:
-            avg_duration = recent_avg = 0
+        avg = sum(r['duration'] for r in self.cycle_durations) / len(
+            self.cycle_durations) if self.cycle_durations else 0
+        recent = self.cycle_durations[-10:] if len(self.cycle_durations) >= 10 else self.cycle_durations
+        recent_avg = sum(r['duration'] for r in recent) / len(recent) if recent else 0
+
+        theme = "#00796B"
 
         return f"""
+        <!DOCTYPE html>
         <html>
         <head>
+            <meta charset="UTF-8">
             <style>
-                body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                table {{ width: 100%; border-collapse: collapse; margin: 15px 0; }}
-                th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-                th {{ background-color: #4CAF50; color: white; }}
-                .alert {{ background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 10px 0; }}
-                .critical {{ background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 10px; margin: 10px 0; }}
+                body {{
+                    font-family: 'Microsoft YaHei', Arial, sans-serif;
+                    background: #f5f5f5;
+                    padding: 20px;
+                }}
+                .card {{
+                    max-width: 700px;
+                    margin: auto;
+                    background: #fff;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }}
+                .header {{
+                    background: linear-gradient(135deg, {theme}, #004D40);
+                    color: white;
+                    padding: 20px;
+                    text-align: center;
+                }}
+                table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 20px;
+                }}
+                th, td {{
+                    border: 1px solid #ddd;
+                    padding: 10px;
+                }}
+                th {{
+                    background: #e0f2f1;
+                }}
             </style>
         </head>
         <body>
-            <h2>📊 ttkj_monitor性能报告 - 第{total_cycles}轮</h2>
-            <p>报告生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-            <p>系统运行时间: {uptime_hours:.1f} 小时</p>
+            <div class="card">
+                <div class="header">
+                    <h2>📊 性能运行报告</h2>
+                    <p>第 {total_cycles} 轮</p>
+                </div>
 
-            <h3>📈 核心指标</h3>
-            <table>
-                <tr><th>指标</th><th>数值</th></tr>
-                <tr><td>成功率</td><td>{success_rate:.2%}</td></tr>
-                <tr><td>总轮次数</td><td>{total_cycles}</td></tr>
-                <tr><td>成功轮次</td><td>{success}</td></tr>
-                <tr><td>失败轮次</td><td>{failure}</td></tr>
-                <tr><td>平均耗时</td><td>{avg_duration:.1f}秒</td></tr>
-                <tr><td>最近10轮平均</td><td>{recent_avg:.1f}秒</td></tr>
-                <tr><td>运行频率</td><td>{total_cycles / uptime_hours:.1f} 轮/小时</td></tr>
-            </table>
-
-            <h3>🚨 告警状态</h3>
-            <table>
-                <tr><th>告警类型</th><th>阈值</th><th>当前值</th><th>状态</th></tr>
-                <tr><td>P1(累计失败)</td><td>{P1_TOTAL_FAILURE_THRESHOLD}</td><td>{failure}</td><td>{'🚨 已触发' if self.p1_alert_sent else '✅ 正常'}</td></tr>
-                <tr><td>P2(成功率)</td><td>{P2_SUCCESS_RATE_THRESHOLD:.0%}</td><td>{success_rate:.2%}</td><td>{'⚠️ 已触发' if self.p2_alert_sent else '✅ 正常'}</td></tr>
-            </table>
-
-            {f'<div class="critical"><strong>⚠️ 警告:</strong> 累计失败次数已达{failure}次，接近P1告警阈值{P1_TOTAL_FAILURE_THRESHOLD}！</div>' if failure >= P1_TOTAL_FAILURE_THRESHOLD * 0.8 else ''}
-            {f'<div class="alert"><strong>💡 注意:</strong> 成功率{success_rate:.2%}低于阈值{P2_SUCCESS_RATE_THRESHOLD:.0%}，请关注系统性能！</div>' if success_rate < P2_SUCCESS_RATE_THRESHOLD * 1.1 else ''}
-
-            <p><em>报告间隔: 每 {PERFORMANCE_REPORT_CYCLE_INTERVAL} 轮发送一次</em></p>
+                <table>
+                    <tr><th>指标</th><th>数值</th></tr>
+                    <tr><td>运行时间</td><td>{uptime_hours:.1f} 小时</td></tr>
+                    <tr><td>成功率</td><td>{success_rate:.2%}</td></tr>
+                    <tr><td>失败轮次</td><td>{failure}</td></tr>
+                    <tr><td>平均耗时</td><td>{avg:.1f}s</td></tr>
+                    <tr><td>最近10轮</td><td>{recent_avg:.1f}s</td></tr>
+                </table>
+            </div>
         </body>
         </html>
         """
