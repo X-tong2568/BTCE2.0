@@ -1,3 +1,4 @@
+# health_check.py
 import asyncio
 import psutil
 import time
@@ -8,7 +9,7 @@ from retry_decorator import NETWORK_RETRY_CONFIG, async_retry
 
 
 class HealthChecker:
-    # 在 health_check.py 的 HealthChecker 类中添加：
+    """增强的健康检查类"""
 
     _instance = None
 
@@ -17,7 +18,6 @@ class HealthChecker:
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
-    """增强的健康检查类"""
 
     def __init__(self):
         self.loop_count = None
@@ -119,10 +119,6 @@ class HealthChecker:
 
     def get_stats(self, total_loops=None):
         """获取统计信息"""
-        """获取统计信息
-            Args:
-                total_loops: 外部传入的总循环次数，如果为None则使用内部计算
-        """
         total = total_loops if total_loops is not None else (self.success_count + self.failure_count)
         success_rate = (self.success_count / total * 100) if total > 0 else 0
 
@@ -134,3 +130,19 @@ class HealthChecker:
             "抓取成功率": f"{success_rate:.3f}%",
             "最后一次抓取时间": datetime.fromtimestamp(self.last_health_check).strftime('%H:%M:%S')
         }
+
+
+# 全局健康检查函数
+async def perform_health_checks():
+    """执行健康检查"""
+    checker = HealthChecker()
+    try:
+        # 这里可以添加更多的健康检查逻辑
+        memory_ok = await checker.check_memory_usage()
+        return {
+            "memory_usage_ok": memory_ok,
+            "uptime": checker.get_uptime()
+        }
+    except Exception as e:
+        logger.error(f"❌ 健康检查执行失败: {e}")
+        return {"error": str(e)}
