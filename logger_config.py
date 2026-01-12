@@ -186,13 +186,13 @@ def setup_logging():
 # def cleanup_logs_now(retention_days=3):
 #     """立即执行日志清理"""
 #     print(f"🧹 开始清理超过 {retention_days} 天的日志文件...")
-#
+
 #     # 临时修改保留天数
 #     import cleanup_old_logs  # 如果需要，可以创建一个模块变量
-#
+
 #     # 重新运行清理
 #     cleanup_old_logs()
-#
+
 #     print("🧹 日志清理完成")
 
 
