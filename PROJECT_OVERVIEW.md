@@ -227,19 +227,6 @@ python get_cookies.py
 python main.py
 ```
 
-后台运行：
-
-```bash
-nohup python main.py > logs/monitor.log 2>&1 &
-```
-
-使用系统服务：
-
-```bash
-sudo systemctl enable bili-monitor
-sudo systemctl start bili-monitor
-```
-
 ### 6. 查看日志和状态
 
 ```bash
@@ -281,12 +268,7 @@ python health_check.py
 3. **邮件发送失败**：检查授权码和 SMTP 设置
 4. **QQ 消息未发送**：检查 QQ 机器人服务状态
 
-### 调试模式
 
-```python
-LOG_LEVEL = "DEBUG"
-DEBUG_MODE = True
-```
 
 ### 健康检查
 
@@ -297,7 +279,7 @@ python health_check.py --detailed
 ## 版本信息
 
 * **项目名称**：B站动态监控系统 (BTCE)
-* **当前版本**：v1.0.0
+* **当前版本**：v3.0.0
 * **Python要求**：3.8+
 * **最后更新**：2026年1月12日
 
