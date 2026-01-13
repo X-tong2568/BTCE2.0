@@ -1,6 +1,7 @@
-# comment_renderer.py
+# render_comment.py
 import time
 import asyncio
+import random
 from bs4 import BeautifulSoup
 from config import UP_NAME
 from logger_config import logger
@@ -9,6 +10,57 @@ from datetime import datetime
 
 class CommentRenderer:
     """评论渲染和变化检测类"""
+
+    def __init__(self):
+        """初始化颜色生成器"""
+        # 定义对比色组合，每对都是对比色
+        self.color_gradients = [
+            # 红绿渐变
+            ("#FF5252", "#4CAF50"),  # 红色 -> 绿色
+            ("#E53935", "#66BB6A"),  # 深红 -> 浅绿
+
+            # 蓝橙渐变
+            ("#2196F3", "#FF9800"),  # 蓝色 -> 橙色
+            ("#1565C0", "#FF5722"),  # 深蓝 -> 深橙
+
+            # 紫黄渐变
+            ("#9C27B0", "#FFEB3B"),  # 紫色 -> 黄色
+            ("#7B1FA2", "#FFD600"),  # 深紫 -> 金黄
+
+            # 青粉渐变
+            ("#00BCD4", "#E91E63"),  # 青色 -> 粉色
+            ("#0097A7", "#C2185B"),  # 深青 -> 深粉
+
+            # 青橙渐变
+            ("#009688", "#FF9800"),  # 青色 -> 橙色
+            ("#00695C", "#F57C00"),  # 深青 -> 深橙
+
+            # 紫绿渐变
+            ("#673AB7", "#8BC34A"),  # 紫色 -> 浅绿
+            ("#512DA8", "#689F38"),  # 深紫 -> 深绿
+
+            # 橙蓝渐变
+            ("#FF9800", "#2196F3"),  # 橙色 -> 蓝色
+            ("#F57C00", "#1976D2"),  # 深橙 -> 深蓝
+
+            # 粉青渐变
+            ("#E91E63", "#00BCD4"),  # 粉色 -> 青色
+            ("#C2185B", "#0097A7"),  # 深粉 -> 深青
+
+            # 红蓝渐变
+            ("#F44336", "#3F51B5"),  # 红色 -> 蓝色
+            ("#D32F2F", "#303F9F"),  # 深红 -> 深蓝
+
+            # 黄紫渐变
+            ("#FFEB3B", "#9C27B0"),  # 黄色 -> 紫色
+            ("#FBC02D", "#7B1FA2"),  # 深黄 -> 深紫
+        ]
+
+    def _get_random_gradient(self):
+        """获取随机双色渐变（对比色）"""
+        primary, secondary = random.choice(self.color_gradients)
+        logger.info(f"🎨 使用对比色渐变: {primary} -> {secondary}")
+        return primary, secondary
 
     @staticmethod
     def extract_text_from_html(html_content: str) -> str:
@@ -111,29 +163,28 @@ class CommentRenderer:
 
             # 检测文字变化
             if last_text and current_text != last_text:
-                logger.info("🔔🔔 检测到置顶评论文字变化！")
+                logger.info("🔔 检测到置顶评论文字变化！")
                 return True
 
             # 检测图片变化
             if set(current_images) != set(last_images):
-                logger.info("🔔🔔 检测到置顶评论图片变化！")
+                logger.info("🔔 检测到置顶评论图片变化！")
                 return True
 
             return False
 
         except Exception as e:
-            logger.error(f"❌❌ 检测评论变化失败: {e}")
+            logger.error(f"❌ 检测评论变化失败: {e}")
             return False
 
     def render_email_content(self, dynamic_id, current_html, current_images, last_html, last_images, current_time=None):
-        """渲染邮件内容 - 修复图片显示问题"""
+        """渲染邮件内容 - 修复图片显示问题，将跳转按钮放在单独区域，并使用随机对比色渐变"""
         try:
             if current_time is None:
                 current_time = time.strftime('%Y-%m-%d %H:%M:%S')
 
-            primary_color = "#2196F3"
-            secondary_color = "#1976D2"
-            status_color = "#2196F3"
+            # 获取随机对比色渐变
+            primary_color, secondary_color = self._get_random_gradient()
 
             email_body = f"""
             <!DOCTYPE html>
@@ -162,6 +213,16 @@ class CommentRenderer:
                         padding: 20px;
                         text-align: center;
                     }}
+                    .header h1 {{
+                        margin: 0;
+                        font-size: 24px;
+                        text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+                    }}
+                    .header-gradient-bar {{
+                        height: 5px;
+                        background: linear-gradient(90deg, {primary_color}, {secondary_color});
+                        margin-top: 10px;
+                    }}
                     .content {{
                         padding: 30px;
                     }}
@@ -170,6 +231,8 @@ class CommentRenderer:
                         padding: 20px;
                         border-radius: 8px;
                         margin-bottom: 20px;
+                        border-left: 4px solid {primary_color};
+                        border-right: 4px solid {secondary_color};
                     }}
                     .comment-content {{
                         border: 1px solid #ddd;
@@ -178,12 +241,17 @@ class CommentRenderer:
                         white-space: pre-wrap;
                         word-break: break-all;
                         margin-top: 10px;
+                        line-height: 1.5;
                     }}
                     .current-comment {{
                         background-color: #f0f8ff;
+                        border-left: 4px solid {primary_color};
+                        border-right: 4px solid {secondary_color};
                     }}
                     .previous-comment {{
                         background-color: #f0f0f0;
+                        border-left: 4px solid {primary_color};
+                        border-right: 4px solid {secondary_color};
                     }}
                     .images-container {{
                         display: flex;
@@ -198,6 +266,39 @@ class CommentRenderer:
                         border-radius: 5px;
                         border: 1px solid #ddd;
                     }}
+                    .btn {{
+                        display: inline-block;
+                        margin-top: 10px;
+                        background: linear-gradient(135deg, {primary_color}, {secondary_color});
+                        color: #fff;
+                        padding: 12px 24px;
+                        border-radius: 5px;
+                        text-decoration: none;
+                        font-weight: bold;
+                        transition: all 0.3s ease;
+                        border: none;
+                        cursor: pointer;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                    }}
+                    .btn:hover {{
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                    }}
+                    .action-section {{
+                        text-align: center;
+                        padding: 25px;
+                        background: linear-gradient(135deg, #f9f9f9, #f0f0f0);
+                        border-radius: 8px;
+                        margin: 20px 0;
+                        border: 2px solid transparent;
+                        border-image: linear-gradient(135deg, {primary_color}, {secondary_color});
+                        border-image-slice: 1;
+                    }}
+                    .action-section p {{
+                        font-size: 16px;
+                        margin-bottom: 15px;
+                        color: #333;
+                    }}
                     .footer {{
                         text-align: center;
                         color: #999;
@@ -206,31 +307,48 @@ class CommentRenderer:
                         padding: 20px;
                         border-top: 1px solid #eee;
                     }}
+                    .time-badge {{
+                        display: inline-block;
+                        background: linear-gradient(135deg, {primary_color}, {secondary_color});
+                        color: white;
+                        padding: 4px 8px;
+                        border-radius: 3px;
+                        font-size: 12px;
+                        margin-left: 5px;
+                    }}
+                    .key-badge {{
+                        display: inline-block;
+                        background: linear-gradient(135deg, {primary_color}, {secondary_color});
+                        color: white;
+                        padding: 4px 8px;
+                        border-radius: 3px;
+                        font-size: 16px;
+                        margin-left: 5px;
                 </style>
             </head>
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>{UP_NAME}动态置顶评论更新通知</h1>
+                        <h1>{UP_NAME} 动态置顶评论更新通知</h1>
+                        <div class="header-gradient-bar"></div>
                     </div>
 
                     <div class="content">
-
                         <div class="info-section">
-                            <p><strong>监测动态：</strong>
+                            <span class="time-badge">📱 监测动态：</span></p>
                             <a href="https://t.bilibili.com/{dynamic_id}">
                             https://t.bilibili.com/{dynamic_id}</a></p>
-                            <p><strong>检测时间：</strong>{current_time}</p>
+                            <p><strong><span class="time-badge">⏰ 检测时间：</span></p> </strong>{current_time}
                         </div>
 
                         <div class="info-section">
-                            <p><strong>新置顶评论：</strong></p>
+                            <span class="key-badge">✨ 新置顶评论： ✨</span></p>
                             <div class="comment-content current-comment">
                                 {current_html if current_html else "无置顶评论"}
                             </div>
             """
 
-            # ✅ 新置顶评论图片（关键修复点）
+            # ✅ 新置顶评论图片
             if current_images:
                 email_body += '<div class="images-container">'
                 for img_url in current_images:
@@ -238,23 +356,20 @@ class CommentRenderer:
                         img_url = 'https:' + img_url
                     elif not img_url.startswith(('http://', 'https://')):
                         img_url = 'https:' + img_url
-
-                    email_body += f'''
-                    <img class="image-item" src="{img_url}" alt="评论图片">
-                    '''
+                    email_body += f'<img class="image-item" src="{img_url}" alt="评论图片">'
                 email_body += '</div>'
 
             email_body += f"""
                         </div>
 
                         <div class="info-section">
-                            <p><strong>原置顶评论：</strong></p>
+                            <span class="key-badge">📄 原置顶评论： 📄</span></p>
                             <div class="comment-content previous-comment">
                                 {last_html if last_html else "无原置顶评论"}
                             </div>
             """
 
-            # ✅ 原置顶评论图片（同样修复）
+            # ✅ 原置顶评论图片
             if last_images:
                 email_body += '<div class="images-container">'
                 for img_url in last_images:
@@ -262,27 +377,31 @@ class CommentRenderer:
                         img_url = 'https:' + img_url
                     elif not img_url.startswith(('http://', 'https://')):
                         img_url = 'https:' + img_url
-
-                    email_body += f'''
-                    <img class="image-item" src="{img_url}" alt="原评论图片">
-                    '''
+                    email_body += f'<img class="image-item" src="{img_url}" alt="原评论图片">'
                 email_body += '</div>'
 
             email_body += f"""
+                        </div>
+
+                        <!-- 独立的按钮区域 -->
+                        <div class="action-section">
+                            <p>点击下方按钮查看最新动态：</p>
+                            <a class="btn" href="https://t.bilibili.com/{dynamic_id}?comment_on=1" target="_blank">
+                                🔍 前往B站查看动态
+                            </a>
                         </div>
                     </div>
 
                     <div class="footer">
                         <p>此邮件由动态监控系统自动发送，请勿回复</p>
-                        <p>{current_time}</p>
+                        <p>检测时间: {current_time}</p>
+                         <p>本次随机主题色: {primary_color} → {secondary_color}</p>
                     </div>
                 </div>
             </body>
             </html>
             """
-
             return email_body
-
         except Exception as e:
             logger.error(f"❌ 渲染邮件内容失败: {e}")
             return f"<html><body><h1>渲染邮件内容出错: {e}</h1></body></html>"
@@ -308,7 +427,7 @@ class CommentRenderer:
             text_content = soup.get_text(strip=True)
 
             # 生成QQ消息
-            qq_message = f"【{up_name}】动态置顶评论更新啦~\n"
+            qq_message = f"【{up_name}】瞳瞳空间更新啦~\n"
             qq_message += f"{text_content}\n"
 
             # 添加图片（如果有）
@@ -329,7 +448,7 @@ class CommentRenderer:
             return qq_message
 
         except Exception as e:
-            logger.error(f"❌❌❌❌ 生成QQ消息失败: {e}")
+            logger.error(f"❌ 生成QQ消息失败: {e}")
             # 备用消息格式
             backup_msg = f"【{up_name}】置顶评论更新通知\n动态: {dynamic_id}\n时间: {current_time}"
             if current_images:
